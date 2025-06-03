@@ -1,4 +1,6 @@
-﻿using IdentityPIFSS.Models.ViewModels;
+﻿using IdentityPIFSS.Data;
+using IdentityPIFSS.Models.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -8,17 +10,23 @@ namespace IdentityPIFSS.Controllers
     public class AccountController : Controller
     {
 
-        private UserManager<IdentityUser> _userManager;
-        private SignInManager<IdentityUser> _signInManager;
+        #region Configuration
+        private UserManager<ApplicationUser> _userManager;
+        private SignInManager<ApplicationUser> _signInManager;
+        private RoleManager<IdentityRole> _roleManager;
 
-
-        public AccountController(UserManager<IdentityUser> userManager,
-            SignInManager<IdentityUser> signInManager)
+        public AccountController(UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager,
+            RoleManager<IdentityRole> roleManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _roleManager = roleManager;
         }
 
+        #endregion
+
+        #region Users
         [HttpGet]
         public IActionResult Register()
         {
@@ -29,11 +37,12 @@ namespace IdentityPIFSS.Controllers
         {
             if (ModelState.IsValid)
             {
-                IdentityUser user = new IdentityUser
+                ApplicationUser user = new ApplicationUser
                 {
                     Email = model.Email,
                     UserName = model.Email,
-                    PhoneNumber = model.Mobile
+                    PhoneNumber = model.Mobile,
+                    City = model.City
                 };
 
                 var result = await _userManager.CreateAsync(user, model.Password);
@@ -89,5 +98,15 @@ namespace IdentityPIFSS.Controllers
             await _signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
         }
+        #endregion
+
+        #region Roles
+        [HttpGet]
+        
+        public IActionResult RolesList() 
+        {
+            return View(_roleManager.Roles);
+        }
+        #endregion
     }
 }
