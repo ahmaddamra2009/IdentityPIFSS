@@ -6,7 +6,8 @@
 <h1>Register</h1>
 
 <form asp-action="Register" method="post">
-
+    <div asp-validation-summary="All" class="text-danger"
+></div> 
     <table class="table table-bordered">
         <tr>
             <td> <label asp-for="Email"></label> </td>

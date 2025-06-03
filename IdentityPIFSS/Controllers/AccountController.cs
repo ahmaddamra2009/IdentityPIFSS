@@ -9,9 +9,14 @@ namespace IdentityPIFSS.Controllers
     {
 
         private UserManager<IdentityUser> _userManager;
-        public AccountController(UserManager<IdentityUser> userManager)
+        private SignInManager<IdentityUser> _signInManager;
+
+
+        public AccountController(UserManager<IdentityUser> userManager,
+            SignInManager<IdentityUser> signInManager)
         {
             _userManager = userManager;
+            _signInManager = signInManager;
         }
 
         [HttpGet]
@@ -38,12 +43,51 @@ namespace IdentityPIFSS.Controllers
                 }
                 foreach (var err in result.Errors)
                 {
-                    ModelState.AddModelError(err.Code,err.Description);
+                    ModelState.AddModelError(err.Code, err.Description);
                 }
                 return View(model);
             }
             return View(model);
 
+        }
+
+        public IActionResult Login()
+        {
+            if (_signInManager.IsSignedIn(User))
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            return View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> Login(LoginViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                IdentityUser user = new IdentityUser
+                {
+                    Email = model.Email,
+                    UserName = model.Email
+                };
+                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, false);
+
+                if (result.Succeeded)
+                {
+                    return RedirectToAction("Index", "Home");
+
+                }
+                ModelState.AddModelError("", "Invalid Login Attempt");
+                return View(model);
+            }
+            return View(model);
+
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return RedirectToAction("Index", "Home");
         }
     }
 }
